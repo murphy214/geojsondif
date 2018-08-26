@@ -2,6 +2,7 @@ package geojsondif
 
 import (
 	"errors"
+	"fmt"
 	"github.com/paulmach/go.geojson"
 	"math"
 )
@@ -22,13 +23,16 @@ func Round(val float64, roundOn float64, places int) (newVal float64) {
 
 func RoundPoint(point []float64) []float64 {
 	x, y := point[0], point[1]
-	return []float64{Round(x, .5, 6), Round(y, .5, 6)}
+	return []float64{Round(x, .5, 7), Round(y, .5, 7)}
 }
 
 func CheckPoint(point1, point2 []float64) error {
 	point1, point2 = RoundPoint(point1), RoundPoint(point2)
-	if !(point1[0] == point2[0] && point1[1] == point2[1]) {
-		return errors.New("Points Don't Match")
+	xdim := math.Abs(point1[0]-point2[0]) > math.Pow10(-6)
+	ydim := math.Abs(point1[0]-point2[0]) > math.Pow10(-6)
+
+	if xdim || ydim {
+		return errors.New(fmt.Sprintf("Points Don't Match %v %v", point1, point2))
 	}
 	return nil
 }
@@ -95,7 +99,7 @@ func CheckGeom(geom1, geom2 *geojson.Geometry) error {
 
 func CheckProperties(p1, p2 map[string]interface{}) error {
 	if len(p1) != len(p2) {
-		return errors.New("Different Property Sizes.")
+		return errors.New(fmt.Sprintf("Different Property Sizes %v %v", p1, p2))
 	}
 	for k := range p1 {
 		val1, boolval1 := p1[k]
