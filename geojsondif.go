@@ -29,7 +29,7 @@ func RoundPoint(point []float64) []float64 {
 func CheckPoint(point1, point2 []float64) error {
 	point1, point2 = RoundPoint(point1), RoundPoint(point2)
 	xdim := math.Abs(point1[0]-point2[0]) > math.Pow10(-6)
-	ydim := math.Abs(point1[0]-point2[0]) > math.Pow10(-6)
+	ydim := math.Abs(point1[1]-point2[1]) > math.Pow10(-6)
 
 	if xdim || ydim {
 		return errors.New(fmt.Sprintf("Points Don't Match %v %v", point1, point2))
