@@ -5,7 +5,54 @@ import (
 	"fmt"
 	"github.com/paulmach/go.geojson"
 	"math"
+	"strings"
 )
+
+func GetKeyDifs(f1, f2 map[string]interface{}) ([]string, []string) {
+	// getting keys 1 and 2
+	keys1 := []string{}
+	k1map := map[string]string{}
+	for k := range f1 {
+		keys1 = append(keys1, k)
+		k1map[k] = ""
+	}
+	keys2 := []string{}
+	k2map := map[string]string{}
+	for k := range f2 {
+		keys2 = append(keys2, k)
+		k2map[k] = ""
+	}
+
+	// dif variable are
+	// properites that aren't contained in the other feature
+	k1dif := []string{}
+	for k := range k1map {
+		_, boolval := k2map[k]
+		if !boolval {
+			k1dif = append(k1dif, k)
+		}
+	}
+	k2dif := []string{}
+	for k := range k2map {
+		_, boolval := k1map[k]
+		if !boolval {
+			k2dif = append(k2dif, k)
+		}
+	}
+	return k1dif, k2dif
+}
+
+// returns a set of line sequences representing errors
+func GetErrorsKeyDif(kd1, kd2 []string) []string {
+	lines := []string{}
+	for _, k := range kd1 {
+		lines = append(lines, fmt.Sprintf("Feature1 Contains field %s Feature2 does not.", k))
+	}
+	for _, k := range kd2 {
+		lines = append(lines, fmt.Sprintf("Feature2 Contains field %s Feature1 does not.", k))
+	}
+	return lines
+}
 
 func Round(val float64, roundOn float64, places int) (newVal float64) {
 	var round float64
@@ -99,7 +146,10 @@ func CheckGeom(geom1, geom2 *geojson.Geometry) error {
 
 func CheckProperties(p1, p2 map[string]interface{}) error {
 	if len(p1) != len(p2) {
-		return errors.New(fmt.Sprintf("Different Property Sizes %v %v", p1, p2))
+		d1, d2 := GetKeyDifs(p1, p2)
+		lines := GetErrorsKeyDif(d1, d2)
+
+		return errors.New(strings.Join(lines, "\n"))
 	}
 	for k := range p1 {
 		val1, boolval1 := p1[k]
